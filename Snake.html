@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="Snake.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"> 
+        <title></title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600&display=swap');
+*{
+margin:0; 
+padding:0;
+box-sizing;border-box;
+}
+
+body{
+background:#FDBD03;
+background:#b0c4de;
+font-family: 'poppins', sans-serif;
+}
+
+.wrapper{
+height:400px;
+width:350px;
+background:#1a1f22;
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+border-radius:5px;
+overflow:hidden;
+}
+
+.wrapper .score{
+height:50px;
+width:100%;
+border-top-left-radius:5px;
+border-top-right-radius:5px;
+background:#24282E;
+display:flex;
+align-items:center;
+color:grey;
+padding-left:20px;
+color:lightgrey;
+font-size:15px;
+font-family: 'Orbitron', sans-serif;
+}
+
+.wrapper .play-board{
+height:300px;   
+width:100%;
+display:grid;
+grid-template:repeat(30,1fr) / repeat(30,1fr);
+}
+
+.wrapper .play-board .food{
+background:red;   
+}
+
+.wrapper .play-board .snake{
+background:#FCBA04;        
+}
+
+.wrapper .btns{
+height:50px; 
+width:100%;
+position:absolute;
+bottom:0;
+background:#24282E;
+}
+
+.wrapper .btns button{
+all:unset;        
+height:50px; 
+width:24.7%;
+display:flex;
+justify-content:center;
+align-items:center;
+float:left;
+color:lightgrey;
+border-right:1px solid grey;
+font-size:12px;
+cursor:pointer;
+}
+
+.game-over-box{
+background:#24282E;
+position:absolute;
+top:0;
+left:-100%;
+height:100%;
+width:100%;
+transition:all .2s;
+font-family: 'Orbitron', sans-serif;
+}
+
+.game-over-box h2{
+position:absolute;   
+top:35%;
+left:50%;
+transform:translate(-50%,-50%);
+color:grey;
+font-size:35px;
+white-space:nowrap;
+}
+
+.game-over-box .restart-btn{
+all:unset; 
+height:50px;
+width:50px;
+background:grey;
+display:flex;
+justify-content:center;
+align-items:center;
+color:white;
+border-radius:5px;
+position:absolute;
+top:65%;
+left:50%;
+transform:translate(-50%,-50%);
+cursor:pointer;
+}
+
+.game-over-box p{
+position:absolute;
+top:45%;
+left:50%;
+transform:translate(-50%, -50%);  
+color:white;
+}
+
+.made-by{
+position:absolute;  
+bottom:0;
+left:50%;
+transform:translate(-50%,-50%);
+font-size:11px;
+}
+
+.made-by a{
+color:black;
+}
+</style>        
+</head>
+
+<body>
+<div class="wrapper">
+ <div class="score">
+   <span>Score: <span class="score-val" style="color:#FCBA04">0</span></span>  
+ </div> 
+ <div class="play-board"></div>
+ <div class="btns">
+   <button onclick="changeDirection(this)" class="ArrowLeft"><i class="fa-solid fa-arrow-left-long"></i></button>  
+   <button onclick="changeDirection(this)" class="ArrowUp"><i class="fa-solid fa-arrow-up-long"></i></button>
+   <button onclick="changeDirection(this)" class="ArrowDown"><i class="fa-solid fa-arrow-down-long"></i></button>
+   <button onclick="changeDirection(this)" class="ArrowRight"><i class="fa-solid fa-arrow-right-long"></i></button>
+ </div>
+ <div class="game-over-box">
+    <h2>Game Over</h2> 
+    <p>Your score is <span style="color:#FCBA04" class="game-over-score">0</span> 🔥</p>
+    <button class="restart-btn"><i class="fa-solid fa-arrows-rotate"></i></button>
+ </div>
+</div>
+<span class="made-by">Made with ❤ by <a href="tps://instagram.com/_i__h4rxh._?igshid=MzRlODBiNWFlZA==">Harsh Gupta</a></span>
+<script>
+let score_val = document.querySelector('.wrapper .score .score-val');
+let playBoard = document.querySelector('.wrapper .play-board');
+let gameOverBox = document.querySelector('.wrapper .game-over-box');
+let gameOverScore = document.querySelector('.wrapper .game-over-score');
+let restartBtn = document.querySelector('.wrapper .game-over-box .restart-btn');
+
+let gameEnd = false;
+let foodX,foodY;
+let snakeX = 5,snakeY = 10;
+let moveX = 0,moveY = 0;
+let snakeBody = [];
+let IntervalId;
+let score = 0;
+
+let createGame =()=>{
+   //If GameEnd is true Then Call The EndGame Function     
+  if(gameEnd){
+    return EndGame();  
+  }    
+        
+ let li = `<div class="food" style="grid-area:${foodY} / ${foodX}"></div>`;
+ 
+ //If Snake & Food Position Id Equal
+ if (snakeX === foodX && snakeY === foodY) {
+         changeFoodPosition();
+         snakeBody.push([snakeX, snakeY]);
+         score++;
+         score_val.innerHTML = score;
+         gameOverScore.innerHTML = score;
+ }
+ 
+ //Snake Move
+ snakeX += moveX;
+ snakeY += moveY;
+ 
+ for (let i = snakeBody.length - 1; i > 0; i--) {
+         snakeBody[i] = snakeBody[i - 1];
+ }
+ 
+ snakeBody[0] = [snakeX,snakeY]
+
+//Game End When Snake Collide With The Wall
+if (snakeX <= 0 || snakeX > 30 || snakeY <= 0 || snakeY > 30) {
+      return gameEnd = true;
+}
+ 
+ for(let i=0;i<snakeBody.length;i++){
+   li += `<div class="snake" style="grid-area:${snakeBody[i][1]} / ${snakeBody[i][0]}"></div>`;
+  if (i !== 0 && snakeBody[0][1] === snakeBody[i][1] && snakeBody[0][0] === snakeBody[i][0]) {
+          gameEnd = true;
+  }
+ }
+ //
+
+ playBoard.innerHTML = li;
+
+}
+
+
+//Change Food Position Randomly
+let changeFoodPosition =()=>{
+ foodX = Math.floor(Math.random() * 30) + 1;
+ foodY = Math.floor(Math.random() * 30) + 1;
+}
+
+let changeDirection =(e) =>{
+  if(e.classList.contains("ArrowLeft") && moveX != 1){
+     moveX = -1;
+     moveY = 0;
+  }else if(e.classList.contains("ArrowUp") && moveY != 1){
+     moveX = 0;
+     moveY = -1;
+  }else if(e.classList.contains("ArrowRight") && moveX != -1){
+     moveX = 1;
+     moveY = 0;
+  }else if(e.classList.contains("ArrowDown") && moveY != -1){
+     moveX = 0;
+     moveY = 1;
+  }
+  createGame();
+}
+
+let EndGame =()=>{
+ clearInterval(IntervalId);     
+// alert("Game is over"); 
+ gameOverBox.style.left = '0%';
+}
+
+restartBtn.addEventListener('click',()=>{
+  location.reload();     
+})
+
+changeFoodPosition();
+IntervalId = setInterval(createGame,125)
+createGame();
+</script>
+<script src="Snake.js"></script>
+</body>
+
+</html>
